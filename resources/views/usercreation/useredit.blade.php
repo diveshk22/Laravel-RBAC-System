@@ -101,21 +101,34 @@
                 <input type="email" name="email" value="{{ $user->email }}" required>
             </div>
 
-        @if(auth()->user()->hasRole(['admin' , 'super_admin']))
-        <div class="mb-3">
-        <label>Role</label>
-        <select name="role" class="form-control">
-            @if(auth()->user()->hasRole('super_admin'))
-            <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin</option>
+            @if(auth()->user()->hasAnyRole(['admin','super_admin']))
+            <div class="form-group">
+                <label>Role</label>
+
+                <select name="role" class="form-control">
+
+                    <option value="admin"
+                        {{ $user->hasRole('admin') ? 'selected' : '' }}>
+                        Admin
+                    </option>
+
+                    <option value="manager"
+                        {{ $user->hasRole('manager') ? 'selected' : '' }}>
+                        Manager
+                    </option>
+
+                    <option value="employee"
+                        {{ $user->hasRole('employee') ? 'selected' : '' }}>
+                        Employee
+                    </option>
+
+                </select>
+            </div>
             @endif
-        <option value="manager" {{ $user->role == 'manager' ? 'selected' : '' }}>Manager</option>
-        <option value="employee" {{ $user->role == 'employee' ? 'selected' : '' }}>Employee</option>
-        </select>
-        </div>
-        @endif
             <div class="form-group">
                 <label>Password (Leave blank to keep current)</label>
-                <input type="password" name="password">
+                <input type="password" name="password" placeholder="New Password">
+                <input type="password" name="password_confirmation" placeholder="Confirm Password">
             </div>
 
             <button type="submit" class="btn btn-update">

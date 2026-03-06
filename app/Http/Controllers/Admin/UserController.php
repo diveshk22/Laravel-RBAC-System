@@ -12,39 +12,53 @@ class UserController extends Controller
     /* ===========================
        USER LIST (ROLE BASED)
     ============================*/
-    public function index()
-    {
-        $authUser = auth()->user();
+public function index(Request $request)
+{
+    $authUser = auth()->user();
+    $search = $request->search;
 
-        if ($authUser->hasRole('super_admin')) {
-            // Super Admin sees all users
-            $users = User::with('creator')->where('id', '!=', $authUser->id)->get();
-        } elseif ($authUser->hasRole('admin')) {
-            // Admin sees managers + users
-            $users = User::with('creator')
-                ->whereHas('roles', function ($q) {
-                    $q->whereIn('name', ['manager', 'employee']);
-                })
-                ->get();
-        } elseif ($authUser->hasRole('manager')) {
-            // Manager sees only users created by him
-            $users = User::with('creator')
-                ->whereHas('roles', function ($q) {
-                    $q->where('name', 'employee');
-                })
-                ->where('created_by', $authUser->id)
-                ->get();
-        }
+    $usersQuery = User::with('creator');
 
-        return view('usercreation.userIndex', compact('users'));
+    // ================= SUPER ADMIN =================
+    if ($authUser->hasRole('super_admin')) {
+
+        $usersQuery->where('id', '!=', $authUser->id);
+
+    }
+    // ================= ADMIN =================
+    elseif ($authUser->hasRole('admin')) {
+
+        $usersQuery->whereHas('roles', function ($q) {
+            $q->whereIn('name', ['manager', 'employee', 'admin']);
+        });
+
+    }
+    // ================= MANAGER =================
+    elseif ($authUser->hasRole('manager')) {
+
+        $usersQuery->whereHas('roles', function ($q) {
+            $q->where('name', 'employee');
+        })->where('created_by', auth()->id());
     }
 
+    // ================= SEARCH (COMMON FOR ALL) =================
+    if (!empty($search)) {
+        $usersQuery->where(function ($q) use ($search) {
+            $q->where('name', 'like', "%$search%")
+              ->orWhere('email', 'like', "%$search%");
+        });
+    }
+
+    $users = $usersQuery->latest()->paginate(10)->withQueryString();
+
+    return view('usercreation.userIndex', compact('users'));
+}
 
     /* ===========================
        SHOW CREATE FORM
     ============================*/
-    public function create()
-    {
+public function create()
+{
         $user = auth()->user();
 
         if ($user->hasRole('super_admin')) {
@@ -52,14 +66,14 @@ class UserController extends Controller
             $roles = ['admin', 'manager', 'employee'];
         } elseif ($user->hasRole('admin')) {
             // Admin can create manager + employee
-            $roles = ['manager', 'employee'];
+            $roles = ['admin', 'manager', 'employee'];
         } else {
             // Others can only create employee
             $roles = ['employee'];
         }
 
         return view('usercreation.CreateUser', compact('roles'));
-    }
+}
 
     /* ===========================
        STORE USER
@@ -73,7 +87,7 @@ public function store(Request $request)
     //  dd($authUser->getRoleNames()); 
     $request->validate([
         'name' => 'required',
-        'email'=> 'required|email|unique:users',
+        'email'=> 'required|email|',
         'password' => 'required|min:6|confirmed',
         'role' => 'required',
     ]);
@@ -85,7 +99,7 @@ public function store(Request $request)
         $allowedRoles = ['admin', 'manager', 'employee'];
     }
     elseif ($authUser->hasRole('admin')) {
-        $allowedRoles = ['manager', 'employee'];
+        $allowedRoles = [ 'admin','manager', 'employee'];
     }
     elseif ($authUser->hasRole('manager')) {
         $allowedRoles = ['employee'];
@@ -113,8 +127,8 @@ public function store(Request $request)
     /* ===========================
        EDIT USER
     ============================*/
-    public function edit($id)
-    {
+public function edit($id)
+{
         $authUser = auth()->user();
         $user = User::findOrFail($id);
 
@@ -123,20 +137,20 @@ public function store(Request $request)
             abort(403);
         }
         if ($authUser->hasRole('admin')) {
-            $roles = \Spatie\Permission\Models\Role::whereIn('name', ['manager', 'employee'])->get();
+            $roles = \Spatie\Permission\Models\Role::whereIn('name', ['admin', 'manager', 'employee'])->get();
         } else {
             $roles = \Spatie\Permission\Models\Role::where('name', 'employee')->get();
         }
 
         return view('usercreation.useredit', compact('user', 'roles'));
-    }
+}
 
 
     /* ===========================
        UPDATE USER
     ============================*/
-    public function update(Request $request, $id)
-    {
+public function update(Request $request, $id)
+{
         $authUser = auth()->user();
         $user = User::findOrFail($id);
 
@@ -169,7 +183,7 @@ public function store(Request $request)
                 $user->syncRoles([$request->role]);
             }
 
-            elseif ($authUser->hasRole('admin') && in_array($request->role, ['manager','employee'])) {
+            elseif ($authUser->hasRole('admin') && in_array($request->role, ['admin', 'manager', 'employee'])) {
                 $user->syncRoles([$request->role]);
             }
         }
@@ -181,14 +195,14 @@ public function store(Request $request)
         $user->save();
 
         return back()->with('updated', 'Employee updated successfully!');
-    }
+}
 
 
     /* ===========================
        DELETE USER
     ============================*/
-    public function destroy(User $user)
-    {
+public function destroy(User $user)
+{
         $authUser = auth()->user();
 
         // Manager cannot delete

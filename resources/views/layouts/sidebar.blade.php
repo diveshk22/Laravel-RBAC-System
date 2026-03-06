@@ -27,6 +27,10 @@
     <span class="font-medium">View Users</span>
     </a>
 
+    <a href="{{ route('profile.edit') }}"
+    class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white transition">
+    🙍 <span>My Profile</span>
+    </a>
 
     @endrole
 
@@ -61,6 +65,11 @@
     <span class="text-lg">👥</span>
     <span class="font-medium">View Users</span>
     </a>
+    
+    <a href="{{ route('profile.edit') }}"
+    class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white transition">
+    🙍 <span>My Profile</span>
+    </a>
     @endrole
 
     <!-- Managers Roles -->
@@ -90,13 +99,17 @@
         📁 <span>View Projects</span>
         </a>
 
+    <a href="{{ route('profile.edit') }}"
+    class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white transition">
+    🙍 <span>My Profile</span>
+    </a>
+
     @endrole
 
     <!------------------------------ Mangers End Roles ---------------------------------------->
 
 
     <!-------------------------------- Users Roles --------------------------------------->
-
     @role('employee')
     <a href="{{ route('employee.dashboard') }}"
     class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white transition">
@@ -106,6 +119,7 @@
      <a href="{{route ('employee.projects.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white transition">
      📁 <span>My Projects</span>
     </a>
+    
     <a href="{{ route('profile.edit') }}"
     class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white transition">
     🙍 <span>My Profile</span>

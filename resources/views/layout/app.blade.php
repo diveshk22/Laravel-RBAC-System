@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Dashboard</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     {{--- @vite(['resources/css/app.css','resources/js/app.js']) --}}
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -89,6 +90,6 @@
     </div>
 
 </div>
-
+@stack('scripts')
 </body>
 </html>

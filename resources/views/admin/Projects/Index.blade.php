@@ -137,6 +137,10 @@ body {
 </style>
 
 <div class="projects-container">
+    <form method="GET" action="{{ route('projects.index') }}" class="mb-4">
+        <input type="text" name="search" placeholder="Search projects..." value="{{ request()->search }}" class="px-4 py-2 rounded-lg bg-gray-700 text-white focus:outline-none">
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Search</button>
+    </form>
     <div class="projects-title">All Projects</div>
         <div class="projects-card">
             <table class="projects-table">
@@ -149,48 +153,53 @@ body {
                         <th>Actions</th>
                     </tr>
                 </thead>
-            <tbody>
-                @forelse($projects as $key => $project)
-                    <tr>
-                        <td>{{ $key + 1 }}</td>
-                        <td><strong>{{ $project->name }}</strong></td>
-                        <td>{{ $project->description }}</td>
-                        <td>
-                            @foreach($project->users as $user)
-                                <span class="badge-user">{{ $user->name }}</span>
-                            @endforeach
-                        </td>
-                        <td class="actions">
-                        @php
-                            $userRole = auth()->user()->getRoleNames()->first();
-                        @endphp
+<tbody>
+    @forelse($projects as $key => $project)
+        <tr>
+            <td>{{ $projects->firstItem() + $key }}</td>
+            <td><strong>{{ $project->name }}</strong></td>
+            <td>{!! $project->description !!}</td>
+            <td>
+                @foreach($project->users as $user)
+                    <span class="badge-user">{{ $user->name }}</span>
+                @endforeach
+            </td>
+            <td class="actions">
+                @php
+                    $userRole = auth()->user()->getRoleNames()->first();
+                @endphp
 
-                        <a href="{{ route('projects.tasks.index', $project->id) }}" class="btn-view">View Tasks</a>
+                <a href="{{ route('projects.tasks.index', $project->id) }}" class="btn-view">View Tasks</a>
 
-                        @if($userRole == 'admin' || $userRole == 'manager')
-                            <a href="{{ route('projects.tasks.create', $project->id) }}" class="btn-add">Add Task</a>
-                            <a href="{{ route('projects.edit', $project->id) }}" class="btn-edit">Edit</a>
+                @if($userRole == 'admin' || $userRole == 'manager')
+                    <a href="{{ route('projects.tasks.create', $project->id) }}" class="btn-add">Add Task</a>
+                    <a href="{{ route('projects.edit', $project->id) }}" class="btn-edit">Edit</a>
 
-                            @if($userRole == 'admin')
-                                <form action="{{ route('projects.destroy', $project->id) }}" method="POST" style="display:inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" onclick="return confirm('Are you sure?')" class="btn-delete">
-                                        Delete
-                                    </button>
-                                </form>
-                            @endif
-                        @endif
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="5" class="no-data">No Projects Found</td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
+                    @if($userRole == 'admin')
+                        <form action="{{ route('projects.destroy', $project->id) }}" method="POST" style="display:inline;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" onclick="return confirm('Are you sure?')" class="btn-delete">
+                                Delete
+                            </button>
+                        </form>
+                    @endif
+                @endif
+            </td>
+        </tr>
+    @empty
+        <tr>
+            <td colspan="5" class="no-data">No Projects Found</td>
+        </tr>
+    @endforelse
+</tbody>
+</table>
+
+{{-- Pagination Links Table ke bahar --}}
+<div class="mt-4">
+    {{ $projects->links() }}
 </div>
+</div>
+
 
 @endsection

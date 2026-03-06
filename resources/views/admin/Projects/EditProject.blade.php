@@ -67,7 +67,19 @@
         cursor: pointer;
         transition: 0.3s ease;
     }
+    /* CKEditor Fix */
 
+    .ck-editor__editable_inline {
+        background: #1e293b !important;
+        color: #ffffff !important;
+        min-height: 180px;
+    }
+
+    .ck-editor__editable_inline p,
+    .ck-editor__editable_inline span,
+    .ck-editor__editable_inline div {
+        color: #ffffff !important;
+    }
     .submit-btn:hover {
         opacity: 0.9;
         transform: translateY(-2px);
@@ -105,8 +117,8 @@
 
         <div class="form-group">
             <label>Description:</label>
-            <textarea name="description" 
-              class="form-control">{{ $project->description }}</textarea>
+            <textarea name="description" id = "editor"
+              class="form-control">{!!$project->description !!}</textarea>
         </div>
 
         <div class="form-group">
@@ -126,15 +138,44 @@
         </button>
     </form>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+@push('scripts')
+<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        ClassicEditor
+            .create(document.querySelector('#editor'), {
+                toolbar: [
+                    'heading', '|', 
+                    'bold', 'italic', 'link', '|', 
+                    'bulletedList', 'numberedList', 'blockQuote', '|', 
+                    'imageUpload', 'insertTable', 'undo', 'redo'
+                ],
+                // This enables the "Upload" tab and the toolbar button
+                ckfinder: {
+                    uploadUrl: "{{ route('projects.upload', ['_token' => csrf_token()]) }}"
+                }
+            })
+            .then(editor => {
+                console.log("Editor initialized with Image Upload");
+            })
+            .catch(error => {
+                console.error("CKEditor Error:", error);
+            });
+    });
+</script>
+@endpush
 @if(session('success'))
-    <script>
-        Swal.fire({
-            title: 'Done!',
-            text: "{{ session('success') }}",
-            icon: 'success',
-            confirmButtonText: 'Okay'
-        });
-    </script>
+<script>
+Swal.fire({
+    icon: 'success',
+    title: 'Success',
+    text: '{{ session('success') }}',
+    confirmButtonColor: '#4f46e5'
+});
+</script>
 @endif
 @endsection

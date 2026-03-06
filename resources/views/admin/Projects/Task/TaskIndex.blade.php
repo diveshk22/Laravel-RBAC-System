@@ -106,27 +106,50 @@ body{
     .task-container{ padding:20px; }
     .task-table{ font-size:12px; }
 }
+
+.task-desc-container img {
+    max-width: 80px; /* Limits the width so it stays small in the row */
+    height: auto;
+    display: block;
+    margin-top: 5px;
+    border-radius: 5px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.task-desc-container {
+    font-size: 12px;
+    color: #94a3b8;
+    max-height: 100px; /* Prevents long descriptions from stretching the row too much */
+    overflow: hidden;
+}
 </style>
 
 <div class="task-container">
+<form method="GET" action="{{ route('projects.tasks.index', $project->id) }}" class="mb-4">
+    <input type="text" name="search" placeholder="Search tasks..." value="{{ request()->search }}" class="px-4 py-2 rounded-lg bg-gray-700 text-white focus:outline-none">
+    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Search</button>
+</form>
 
 <a href="{{ route('projects.index') }}">Back</a>
 
     <div class="task-title">📋 All Tasks</div>
 
-    <table class="task-table">
-        <thead>
+            <table class="task-table">
+
+            <thead>
             <tr>
                 <th>#</th>
                 <th>Task Title</th>
+                <th>Description</th>
                 <th>Due Date</th>
                 <th>Assigned To</th>
                 <th>Status</th>
                 <th>Actions</th>
             </tr>
-        </thead>
-        <tbody>
-            @forelse($tasks as $key => $task)
+            </thead>
+
+            <tbody>
+            @forelse($tasks as $task)
 
             @php
             $class = match(strtolower($task->status)){
@@ -139,53 +162,80 @@ body{
             @endphp
 
             <tr>
-                <td>{{ $key + 1 }}</td>
+
+            <td>{{ $loop->iteration }}</td>
+
+            <td>
+            <strong>{{ $task->title }}</strong><br>
 
                 <td>
-                    <strong>{{ $task->title }}</strong><br>
-                    <small style="color:#94a3b8;">{!! Str::limit(strip_tags($task->description), 50) !!}</small>
+                <strong>{{ $task->title }}</strong><br>
+
+                <div class="task-desc-container">
+                {!! $task->description !!}
+                </div>
+
                 </td>
 
-                <td>
-                    {{ $task->due_date ? \Carbon\Carbon::parse($task->due_date)->format('d M Y') : '—' }}
-                </td>
+            <td>
+            {{ $task->due_date ? \Carbon\Carbon::parse($task->due_date)->format('d M Y') : '—' }}
+            </td>
 
-                <td>
-                    {{ $task->assignedUser->name ?? 'Not Assigned' }}
-                </td>
+            <td>
+            {{ $task->assignedUser->name ?? 'Not Assigned' }}
+            </td>
 
-                <td>
-                    <span class="badge {{ $class }}">
-                        {{ $task->status }}
-                    </span>
-                </td>
+            <td>
+            <span class="badge {{ $class }}">
+            {{ $task->status }}
+            </span>
+            </td>
 
-                <td>
-                    <a href="{{ route('projects.tasks.edit', [$project_id, $task->id]) }}" class="action-btn edit-btn">
-                        Edit
-                    </a>
+            <td>
 
-                    @unless(auth()->user()->hasRole('user'))
-                    <form action="{{ route('projects.tasks.destroy', [$project_id, $task->id]) }}" method="POST" style="display:inline;">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit"
-                            onclick="return confirm('Are you sure?')"
-                            class="action-btn delete-btn">
-                            Delete
-                        </button>
-                    </form>
-                    @endunless
-                </td>
+            <a href="{{ route('projects.tasks.edit', [$project->id,$task->id]) }}" class="action-btn edit-btn">
+            Edit
+            </a>
+
+            @unless(auth()->user()->hasRole('user'))
+            <form action="{{ route('projects.tasks.destroy', [$project->id,$task->id]) }}"
+            method="POST"
+            style="display:inline;">
+
+            @csrf
+            @method('DELETE')
+
+            <button type="submit"
+            onclick="return confirm('Are you sure?')"
+            class="action-btn delete-btn">
+            Delete
+            </button>
+
+            </form>
+            @endunless
+
+            </td>
+
             </tr>
+
             @empty
+
             <tr>
-            <td colspan="6" class="no-task">No tasks found.</td>
+            <td colspan="6" class="no-task">
+            No tasks found.
+            </td>
             </tr>
+
             @endforelse
-        </tbody>
-    </table>
+            </tbody>
+
+            </table>
+            {{-- Pagination Links --}}
+        <div style="margin-top:25px; display:flex; justify-content:center;">
+            {{ $tasks->links() }}
+        </div>
 
 </div>
 
 @endsection
+    

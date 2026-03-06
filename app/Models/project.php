@@ -14,11 +14,11 @@ class Project extends Model
     // Project users relationship - Admin/SuperAdmin only
     Public function users()
     {
-        return $this->belongsToMany(User::class , 'project_users' , 'project_id' , 'user_id');
+        return $this->belongsToMany(User::class , 'project_users');
     }
 
     public function tasks()
     {
-        return $this->hasMany(Task::class, 'project_id');
+        return $this->hasMany(Task::class);
     }
 }

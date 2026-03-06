@@ -13,18 +13,27 @@ class TaskController extends Controller
     // Show tasks of specific project
     public function index($project_id)
     {
-        $tasks = Task::where('project_id', $project_id)
-        ->with(['user', 'assignedUser'])
-        ->latest();
+        $project = Project::with('users')->findOrFail($project_id);
+        $search = request()->search;
+        // Base Query (get() nahi lagana)
+        $tasksQuery = Task::where('project_id', $project_id)
+            ->with(['user', 'assignedUser'])
+            ->latest();
 
-        if(auth()->user()->hasRole('employee')) {
-        $tasks->where('assigned_to', auth()->id());
+        // Search filter directly query par lagao
+        if (!empty($search)) {
+            $tasksQuery->where(function ($q) use ($search) {
+                $q->where('title', 'LIKE', "%{$search}%")
+                ->orWhere('description', 'LIKE', "%{$search}%");
+            });
         }
 
-        $tasks = $tasks->get();
+        // Yaha paginate karo (get() nahi lagana)
+        $tasks = $tasksQuery->paginate(10)->withQueryString();
 
-        return view('admin.Projects.Task.TaskIndex', compact('tasks', 'project_id'));
+        return view('admin.Projects.Task.TaskIndex', compact('tasks', 'project'));
     }
+
     // Show create task form
     public function create($project_id)
     {
@@ -62,9 +71,9 @@ class TaskController extends Controller
 
     // Show single task
     public function show($id)
-    {
-        $task = Task::with(['user', 'assignedUser', 'project'])->findOrFail($id);
-        
+    {   
+        // dd(auth()->user()->getRoleNames());
+        $task = Task::with(['project.users', 'user', 'assignedUser'])->findOrFail($id);
         return view('admin.Projects.Task.TaskShow', compact('task'));
     }
 
@@ -116,6 +125,7 @@ class TaskController extends Controller
 
         return back()->with('success', 'Task updated successfully.');
     }
+
 
 
     // Delete task

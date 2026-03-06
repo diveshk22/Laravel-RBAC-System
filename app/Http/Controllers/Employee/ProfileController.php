@@ -12,7 +12,7 @@ class ProfileController extends Controller
 {
     public function edit()
     {
-        return view('User.ProfileEdit', ['user' => auth()->user()]);
+        return view('Employee.ProfileEdit', ['user' => auth()->user()]);
     }
 
     public function update(Request $request)
@@ -21,7 +21,7 @@ class ProfileController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'password' => 'nullable|min:6|confirmed',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp,jfif|max:2048',
         ]);
 
         $user = auth()->user();
@@ -29,13 +29,13 @@ class ProfileController extends Controller
         $user->name = $request->name;
         $user->email = $request->email;
 
-        if ($request->password) {
-            $user->password = bcrypt($request->password);
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->password);
         }
 
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('profile_images', 'public');
-            $user->image = $imagePath;
+            $user->photo = $imagePath;
         }
 
         $user->save();

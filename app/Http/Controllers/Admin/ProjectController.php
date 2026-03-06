@@ -20,16 +20,26 @@ class ProjectController extends Controller
     public function index()
     {
         $user = auth()->user();
+        $search = request()->search;
 
-        if($user->hasRole('admin')) {
-            $projects = Project::with('users')->get();
+        // Base Query
+        if ($user->hasRole('admin')) {
+            $query = Project::with('users');
         } else {
-            $projects = $user->projects()->with('users')->get();
+            $query = $user->projects()->with('users');
         }
+
+        // Search filter
+        if ($search) {
+            $query->where('name', 'LIKE', "%{$search}%");
+        }
+
+        $projects = $query->latest()->paginate(10)->withQueryString();
 
         return view('admin.projects.index', compact('projects'));
     }
 
+    
     public function create()
     {
         $users = $this->getProjectUsers();
@@ -71,6 +81,7 @@ class ProjectController extends Controller
     public function destroy($id)
     {
         $project = Project::findOrFail($id); 
+        $project->users()->detach();
         $project->delete(); 
         return back() ->with('success', 'Project Deleted Successfully');
     }
@@ -99,5 +110,33 @@ class ProjectController extends Controller
 
         return back()
             ->with('success', 'Project Updated Successfully');
+    }
+    public function upload(Request $request)
+    {
+        if ($request->hasFile('upload')) {
+            $file = $request->file('upload');
+            
+            // Sanitize the filename to remove spaces (like in "manish kumar.jpg")
+            $safeName = time() . '_' . str_replace(' ', '_', $file->getClientOriginalName());
+
+            // Move the file
+            $file->move(public_path('uploads'), $safeName);
+
+            $url = asset('uploads/' . $safeName);
+
+            // SUCCESS: CKEditor requires 'uploaded' => true or 1
+            return response()->json([
+                'uploaded' => true,
+                'url' => $url
+            ]);
+        }
+
+        // ERROR: Return a message CKEditor can display
+        return response()->json([
+            'uploaded' => false,
+            'error' => [
+                'message' => 'could not upload this image.'
+            ]
+        ], 400);
     }
 }

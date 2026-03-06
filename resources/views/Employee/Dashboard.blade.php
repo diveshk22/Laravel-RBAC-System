@@ -90,7 +90,7 @@
                 </h2>
 
                 <p class="mt-4 text-lg">
-                    Role:
+                    Role:   
                     <span class="px-4 py-1 rounded-full text-sm bg-gradient-to-r from-blue-600 to-indigo-600">
                         {{ auth()->user()->getRoleNames()->first() }}
                     </span>
@@ -99,8 +99,10 @@
 
             <a href="{{ route('profile.edit') }}">
                 <img
-                    src="{{ auth()->user()->photo ? asset('profile_photos/' . auth()->user()->photo) : 'https://ui-avatars.com/api/?name=' . urlencode(auth()->user()->name) . '&background=4f46e5&color=fff&size=70' }}"
-                    class="avatar">
+                src="{{ auth()->user()->photo 
+                ? asset('storage/' . auth()->user()->photo) 
+                : 'https://ui-avatars.com/api/?name=' . urlencode(auth()->user()->name) . '&background=4f46e5&color=fff&size=70' }}"
+                class="avatar">
             </a>
         </div>
     </div>

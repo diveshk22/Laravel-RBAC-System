@@ -131,9 +131,7 @@
             <div>
             <label class="form-label">Role</label>
             <select name="role" class="form-input" required>
-            @if(auth()->user()->hasRole('super_admin'))
-             <option value="admin">Admin</option>
-            @endif
+            <option value="admin">Admin</option>
             <option value="manager">Manager</option>
             <option value="employee">Employee</option>
             </select>

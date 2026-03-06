@@ -52,6 +52,8 @@ Route::middleware(['auth', 'role:admin|super_admin|manager|employee'])->group(fu
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])
         ->name('admin.dashboard');
 
+    Route::post('/projects/upload', [ProjectController::class, 'upload'])
+        ->name('projects.upload');
     /*
     |--------------------------------------------------------------------------
     | USERS MANAGEMENT
@@ -92,9 +94,6 @@ Route::middleware(['auth', 'role:admin|super_admin|manager|employee'])->group(fu
 
         Route::get('/{task}/edit', [TaskController::class, 'edit'])
             ->name('projects.tasks.edit');
-
-        Route::put('/{task}', [TaskController::class, 'update'])
-            ->name('projects.tasks.update');
 
         Route::delete('/{task}', [TaskController::class, 'destroy'])
             ->name('projects.tasks.destroy');
@@ -161,6 +160,9 @@ Route::middleware(['auth', 'role:employee'])
 
         Route::get('/projects/{project}', [ProjectController::class, 'show'])
             ->name('projects.show');
+        
+        Route::post('/projects/upload', [App\Http\Controllers\Admin\ProjectController::class, 'upload'])
+            ->name('projects.upload');
 
         Route::get('/projects/{project}/tasks', [TaskController::class, 'index'])
             ->name('projects.tasks.index');
@@ -192,6 +194,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile.edit');
 
-    Route::post('/profile/update', [ProfileController::class, 'update'])
+    Route::put('/profile/update', [ProfileController::class, 'update'])
         ->name('profile.update');
 }); 
