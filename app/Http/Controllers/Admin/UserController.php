@@ -80,8 +80,6 @@ public function create()
     ============================*/
 public function store(Request $request)
 {
-
-    
     $authUser = auth()->user();
 
     //  dd($authUser->getRoleNames()); 
@@ -167,10 +165,9 @@ public function update(Request $request, $id)
         ]);
 
          // Role Restrictions
-         if ($authUser->hasRole('manager') && $request->role !== 'employee') {
+        if ($authUser->hasRole('manager') && $request->filled('role') && $request->role !== 'employee') {
             abort(403);
-        }
-
+}
         $user->name = $request->name;
         $user->email = $request->email;
        

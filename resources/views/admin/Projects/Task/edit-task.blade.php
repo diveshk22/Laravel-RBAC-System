@@ -93,7 +93,7 @@
 <div class="view-card">
     <h2>Edit Task</h2>
 
-    <form action="{{ auth()->user()->hasRole('user') ? route('user.projects.task.update', $task->id) : route('projects.task.update', $task->id) }}" method="POST">
+    <form action="{{ route('tasks.update', $task->id) }}" method="POST">
         @csrf
         @method('PUT')
 

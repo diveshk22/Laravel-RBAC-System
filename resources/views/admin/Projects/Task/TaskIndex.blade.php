@@ -30,8 +30,8 @@ body{
 .task-table{
     width:100%;
     border-collapse:collapse;
-    overflow:hidden;
     border-radius:12px;
+    overflow:hidden;
 }
 
 .task-table thead{
@@ -44,7 +44,6 @@ body{
     font-size:14px;
     font-weight:600;
     color:#93c5fd;
-    border-bottom:1px solid rgba(255,255,255,0.1);
 }
 
 .task-table td{
@@ -58,7 +57,6 @@ body{
     transition:0.3s;
 }
 
-/* Status Badges */
 .badge{
     padding:5px 12px;
     border-radius:20px;
@@ -71,7 +69,6 @@ body{
 .completed{ background:#22c55e; color:#111; }
 .rejected{ background:#ef4444; }
 
-/* Buttons */
 .action-btn{
     padding:6px 12px;
     border-radius:6px;
@@ -86,156 +83,176 @@ body{
 .edit-btn{ background:#3b82f6; }
 .delete-btn{ background:#ef4444; }
 
-.edit-btn:hover{ background:#2563eb; }
-.delete-btn:hover{ background:#dc2626; }
-
-.back-link{
-    display:inline-block;
-    margin-bottom:20px;
-    text-decoration:none;
-    color:#93c5fd;
-}
-
-.no-task{
-    text-align:center;
-    padding:20px;
-    color:#94a3b8;
-}
-
-@media(max-width:768px){
-    .task-container{ padding:20px; }
-    .task-table{ font-size:12px; }
-}
-
 .task-desc-container img {
-    max-width: 80px; /* Limits the width so it stays small in the row */
-    height: auto;
-    display: block;
-    margin-top: 5px;
-    border-radius: 5px;
-    border: 1px solid rgba(255,255,255,0.1);
+    max-width:80px;
+    height:auto;
+    display:block;
+    margin-top:5px;
+    border-radius:5px;
 }
 
 .task-desc-container {
-    font-size: 12px;
-    color: #94a3b8;
-    max-height: 100px; /* Prevents long descriptions from stretching the row too much */
-    overflow: hidden;
+    font-size:12px;
+    color:#94a3b8;
+    max-height:100px;
+    overflow:hidden;
 }
 </style>
 
 <div class="task-container">
+
 <form method="GET" action="{{ route('projects.tasks.index', $project->id) }}" class="mb-4">
-    <input type="text" name="search" placeholder="Search tasks..." value="{{ request()->search }}" class="px-4 py-2 rounded-lg bg-gray-700 text-white focus:outline-none">
-    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Search</button>
+    <input 
+        type="text"
+        name="search"
+        placeholder="Search tasks..."
+        value="{{ request()->search }}"
+        class="px-4 py-2 rounded-lg bg-gray-700 text-white"
+    >
+
+    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg">
+        Search
+    </button>
 </form>
 
 <a href="{{ route('projects.index') }}">Back</a>
 
-    <div class="task-title">📋 All Tasks</div>
+<div class="task-title">📋 All Tasks</div>
 
-            <table class="task-table">
+<table class="task-table">
 
-            <thead>
-            <tr>
-                <th>#</th>
-                <th>Task Title</th>
-                <th>Description</th>
-                <th>Due Date</th>
-                <th>Assigned To</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-            </thead>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Task Title</th>
+            <th>Description</th>
+            <th>Due Date</th>
+            <th>Assigned To</th>
+            <th>Status</th>
+            <th>Actions</th>
+            <th>Comments</th>
+        </tr>
+    </thead>
 
-            <tbody>
-            @forelse($tasks as $task)
+    <tbody>
+
+        @forelse($tasks as $task)
 
             @php
-            $class = match(strtolower($task->status)){
-                'pending' => 'pending',
-                'in progress' => 'progress',
-                'completed' => 'completed',
-                'rejected' => 'rejected',
-                default => 'pending'
-            };
+                $class = match(strtolower($task->status)){
+                    'pending' => 'pending',
+                    'in progress' => 'progress',
+                    'completed' => 'completed',
+                    'rejected' => 'rejected',
+                    default => 'pending'
+                };
             @endphp
 
             <tr>
 
-            <td>{{ $loop->iteration }}</td>
-
-            <td>
-            <strong>{{ $task->title }}</strong><br>
+                <td>{{ $loop->iteration }}</td>
 
                 <td>
-                <strong>{{ $task->title }}</strong><br>
+                    <strong>{{ $task->title }}</strong>
+                </td>
 
-                <div class="task-desc-container">
-                {!! $task->description !!}
-                </div>
+                <td>
+                    <div class="task-desc-container">
+                        {!! $task->description !!}
+                    </div>
+                </td>
+
+                <td>
+                    {{ $task->due_date ? \Carbon\Carbon::parse($task->due_date)->format('d M Y') : '—' }}
+                </td>
+
+                <td>
+                    {{ $task->assignedUser->name ?? 'Not Assigned' }}
+                </td>
+
+                <td>
+                    <span class="badge {{ $class }}">
+                        {{ $task->status }}
+                    </span>
+                </td>
+
+                <td>
+
+                    <a href="{{ route('projects.tasks.edit', [$project->id,$task->id]) }}" class="action-btn edit-btn">
+                        Edit
+                    </a>
+
+                    @unless(auth()->user()->hasRole('employee'))
+                        <form 
+                            action="{{ route('projects.tasks.destroy', [$project->id,$task->id]) }}"
+                            method="POST"
+                            style="display:inline;"
+                        >
+                            @csrf
+                            @method('DELETE')
+
+                            <button 
+                                type="submit"
+                                onclick="return confirm('Are you sure?')"
+                                class="action-btn delete-btn"
+                            >
+                                Delete
+                            </button>
+
+                        </form>
+                    @endunless
 
                 </td>
 
-            <td>
-            {{ $task->due_date ? \Carbon\Carbon::parse($task->due_date)->format('d M Y') : '—' }}
-            </td>
+                <td>
 
-            <td>
-            {{ $task->assignedUser->name ?? 'Not Assigned' }}
-            </td>
+                    {{-- Show Comments --}}
+                    @foreach($task->comments as $comment)
 
-            <td>
-            <span class="badge {{ $class }}">
-            {{ $task->status }}
-            </span>
-            </td>
+                        <div style="font-size:12px;margin-bottom:3px;">
+                            <strong>{{ $comment->user->name }}</strong> :
+                            {{ $comment->comment }}
+                        </div>
 
-            <td>
+                    @endforeach
 
-            <a href="{{ route('projects.tasks.edit', [$project->id,$task->id]) }}" class="action-btn edit-btn">
-            Edit
-            </a>
+                    {{-- Add Comment --}}
+                    <form action="{{ route('tasks.comment',$task->id) }}" method="POST">
+                        @csrf
 
-            @unless(auth()->user()->hasRole('user'))
-            <form action="{{ route('projects.tasks.destroy', [$project->id,$task->id]) }}"
-            method="POST"
-            style="display:inline;">
+                        <input
+                            type="text"
+                            name="comment"
+                            placeholder="Write comment..."
+                            style="width:100%;padding:4px;"
+                        >
 
-            @csrf
-            @method('DELETE')
+                        <button type="submit" class="action-btn">
+                            Add Comment
+                        </button>
 
-            <button type="submit"
-            onclick="return confirm('Are you sure?')"
-            class="action-btn delete-btn">
-            Delete
-            </button>
+                    </form>
 
-            </form>
-            @endunless
-
-            </td>
+                </td>
 
             </tr>
 
-            @empty
+        @empty
 
             <tr>
-            <td colspan="6" class="no-task">
-            No tasks found.
-            </td>
+                <td colspan="8" class="no-task">
+                    No tasks found.
+                </td>
             </tr>
 
-            @endforelse
-            </tbody>
+        @endforelse
 
-            </table>
-            {{-- Pagination Links --}}
-        <div style="margin-top:25px; display:flex; justify-content:center;">
-            {{ $tasks->links() }}
-        </div>
+    </tbody>
 
+</table>
+
+<div style="margin-top:25px; display:flex; justify-content:center;">
+    {{ $tasks->links() }}
 </div>
 
 @endsection
-    

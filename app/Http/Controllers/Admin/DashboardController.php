@@ -11,6 +11,7 @@ use Carbon\Carbon;
 class DashboardController extends Controller
 {
     // Dashboard for user management
+
     public function dashboard()
     {
          $totalUsers = User::count();

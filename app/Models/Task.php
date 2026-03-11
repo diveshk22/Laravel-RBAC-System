@@ -23,6 +23,12 @@ class Task extends Model
         'Pending','In progress','Completed'
     ];
 
+    // Task has many comments
+    public function comments()
+    { 
+        return $this->hasMany(Comment::class);
+    }
+
     // Task belongs to a user (creator) - Admin/SuperAdmin only
     public function user()
     {
